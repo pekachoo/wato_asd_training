@@ -22,10 +22,14 @@ class PlannerNode : public rclcpp::Node {
     void odomCallback(const nav_msgs::msg::Odometry::SharedPtr odom_msg);
     void timerCallback();
 
-    void pubPath();
-    void resetGoal();
+    void planPath();
+    bool goalReached();
 
   private:
+    enum class State {WAITING_FOR_GOAL, WAITING_FOR_ROBOT_TO_REACH_GOAL };
+    State state_;
+    bool goal_received_ = false;
+
     robot::PlannerCore planner_;
     rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr map_sub_;
     rclcpp::Subscription<geometry_msgs::msg::PointStamped>::SharedPtr goal_sub_;
