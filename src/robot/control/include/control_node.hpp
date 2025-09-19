@@ -7,6 +7,8 @@
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/quaternion.hpp"
+#include <cmath>
+#include <optional>
 
 #include "control_core.hpp"
 
@@ -15,6 +17,12 @@ class ControlNode : public rclcpp::Node {
     ControlNode();
 
   private:
+    void controlLoop();
+    std::optional<geometry_msgs::msg::PoseStamped> findLookaheadPoint();
+    geometry_msgs::msg::Twist computeVelocity(const geometry_msgs::msg::PoseStamped& target);
+    double computeDistance(const geometry_msgs::msg::Point& a, const geometry_msgs::msg::Point& b);
+    double extractYaw(const geometry_msgs::msg::Quaternion& quat);
+    
     robot::ControlCore control_;
     rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr path_sub_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
@@ -24,10 +32,12 @@ class ControlNode : public rclcpp::Node {
     // Data
     nav_msgs::msg::Path::SharedPtr current_path_;
     nav_msgs::msg::Odometry::SharedPtr robot_odom_;
-
-    // Main loop
-    void controlLoop();
-
+    
+    // Parameters
+    double lookahead_distance_;
+    double goal_tolerance_;
+    double linear_speed_;
+    double max_angular_velocity_;
 };
 
 #endif
