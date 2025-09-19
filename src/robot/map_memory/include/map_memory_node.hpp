@@ -18,6 +18,7 @@ private:
   void updateMap();
   void integrateCostmap();
   void initializeGlobalMap();
+  void rayTrace(double start_x, double start_y, double end_x, double end_y, int8_t obstacle_value);
   double quaternionToYaw(const geometry_msgs::msg::Quaternion& quat);
 
   robot::MapMemoryCore map_memory_;

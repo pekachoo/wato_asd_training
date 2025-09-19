@@ -71,6 +71,7 @@ void MapMemoryNode::integrateCostmap()
   
   if (std::abs(costmap_resolution - global_resolution) > 1e-6) return;
 
+  // Ray trace from robot position to each obstacle
   for (int cy = 0; cy < costmap_height; ++cy) {
     for (int cx = 0; cx < costmap_width; ++cx) {
       const int costmap_idx = cy * costmap_width + cx;
@@ -84,25 +85,61 @@ void MapMemoryNode::integrateCostmap()
       const double cos_yaw = std::cos(robot_yaw_);
       const double sin_yaw = std::sin(robot_yaw_);
       
-      const double world_x = robot_x_ + (cos_yaw * local_x - sin_yaw * local_y);
-      const double world_y = robot_y_ + (sin_yaw * local_x + cos_yaw * local_y);
+      const double obstacle_world_x = robot_x_ + (cos_yaw * local_x - sin_yaw * local_y);
+      const double obstacle_world_y = robot_y_ + (sin_yaw * local_x + cos_yaw * local_y);
       
-      const double global_origin_x = global_map_.info.origin.position.x;
-      const double global_origin_y = global_map_.info.origin.position.y;
-      
-      const int gx = static_cast<int>((world_x - global_origin_x) / global_resolution);
-      const int gy = static_cast<int>((world_y - global_origin_y) / global_resolution);
-      
-      if (gx >= 0 && gx < global_width && gy >= 0 && gy < global_height) {
-        const int global_idx = gy * global_width + gx;
-        const int8_t current_val = global_map_.data[global_idx];
-        const int current = (current_val < 0) ? 0 : current_val;
-        global_map_.data[global_idx] = static_cast<int8_t>(std::max(current, static_cast<int>(cost_value)));
-      }
+      // Ray trace from robot to obstacle
+      rayTrace(robot_x_, robot_y_, obstacle_world_x, obstacle_world_y, cost_value);
     }
   }
 }
 
+void MapMemoryNode::rayTrace(double start_x, double start_y, double end_x, double end_y, int8_t obstacle_value)
+{
+  const double global_origin_x = global_map_.info.origin.position.x;
+  const double global_origin_y = global_map_.info.origin.position.y;
+  const double global_resolution = global_map_.info.resolution;
+  const int global_width = static_cast<int>(global_map_.info.width);
+  const int global_height = static_cast<int>(global_map_.info.height);
+
+  // Bresenham-like ray tracing algorithm
+  const double dx = end_x - start_x;
+  const double dy = end_y - start_y;
+  const double distance = std::hypot(dx, dy);
+  
+  if (distance < 0.01) return; 
+  
+  const double step_size = global_resolution * 0.5;
+  const int num_steps = static_cast<int>(distance / step_size);
+  const double step_x = dx / num_steps;
+  const double step_y = dy / num_steps;
+
+  // Trace ray from robot to obstacle
+  for (int i = 0; i < num_steps; ++i) {
+    const double current_x = start_x + i * step_x;
+    const double current_y = start_y + i * step_y;
+    
+    const int gx = static_cast<int>((current_x - global_origin_x) / global_resolution);
+    const int gy = static_cast<int>((current_y - global_origin_y) / global_resolution);
+    
+    if (gx >= 0 && gx < global_width && gy >= 0 && gy < global_height) {
+      const int global_idx = gy * global_width + gx;
+      
+      // Mark as free space (0) if unknown (-1), otherwise don't overwrite obstacles
+      if (global_map_.data[global_idx] == -1) {
+        global_map_.data[global_idx] = 0; // Free space
+      }
+    }
+  }
+  
+  const int obstacle_gx = static_cast<int>((end_x - global_origin_x) / global_resolution);
+  const int obstacle_gy = static_cast<int>((end_y - global_origin_y) / global_resolution);
+  
+  if (obstacle_gx >= 0 && obstacle_gx < global_width && obstacle_gy >= 0 && obstacle_gy < global_height) {
+    const int obstacle_idx = obstacle_gy * global_width + obstacle_gx;
+    global_map_.data[obstacle_idx] = obstacle_value; 
+  }
+}
 
 void MapMemoryNode::initializeGlobalMap()
 {
