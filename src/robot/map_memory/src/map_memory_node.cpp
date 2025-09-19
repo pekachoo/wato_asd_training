@@ -88,7 +88,7 @@ void MapMemoryNode::integrateCostmap()
       const double obstacle_world_x = robot_x_ + (cos_yaw * local_x - sin_yaw * local_y);
       const double obstacle_world_y = robot_y_ + (sin_yaw * local_x + cos_yaw * local_y);
       
-      // Ray trace from robot to obstacle
+      // Ray trace
       rayTrace(robot_x_, robot_y_, obstacle_world_x, obstacle_world_y, cost_value);
     }
   }
@@ -125,9 +125,9 @@ void MapMemoryNode::rayTrace(double start_x, double start_y, double end_x, doubl
     if (gx >= 0 && gx < global_width && gy >= 0 && gy < global_height) {
       const int global_idx = gy * global_width + gx;
       
-      // Mark as free space (0) if unknown (-1), otherwise don't overwrite obstacles
+      // Mark as free space (0) if unknown (-1), don't overwrite obstacles (100)
       if (global_map_.data[global_idx] == -1) {
-        global_map_.data[global_idx] = 0; // Free space
+        global_map_.data[global_idx] = 0;
       }
     }
   }
@@ -137,7 +137,9 @@ void MapMemoryNode::rayTrace(double start_x, double start_y, double end_x, doubl
   
   if (obstacle_gx >= 0 && obstacle_gx < global_width && obstacle_gy >= 0 && obstacle_gy < global_height) {
     const int obstacle_idx = obstacle_gy * global_width + obstacle_gx;
-    global_map_.data[obstacle_idx] = obstacle_value; 
+    if (global_map_.data[obstacle_idx] != 100) { // If seen as wall, don't overwrite it
+      global_map_.data[obstacle_idx] = obstacle_value;
+    }
   }
 }
 

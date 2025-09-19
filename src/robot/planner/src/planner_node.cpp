@@ -125,6 +125,9 @@ void PlannerNode::planPath() {
     RCLCPP_WARN(this->get_logger(), "Cannot plan path: Missing map or goal!");
     return;
   }
+  
+  RCLCPP_INFO(this->get_logger(), "🗺️ Creating path from robot position: (%.3f, %.3f)", 
+              robot_pose_.position.x, robot_pose_.position.y);
 
   // --- Short-hands ---
   const auto& grid = current_map_;
