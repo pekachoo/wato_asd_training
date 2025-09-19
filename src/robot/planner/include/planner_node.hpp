@@ -14,9 +14,6 @@
 class PlannerNode : public rclcpp::Node {
   public:
     PlannerNode();
-
-    void processParameters();
-
     void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr map_msg);
     void goalCallback(const geometry_msgs::msg::PointStamped::SharedPtr  goal_msg);
     void odomCallback(const nav_msgs::msg::Odometry::SharedPtr odom_msg);

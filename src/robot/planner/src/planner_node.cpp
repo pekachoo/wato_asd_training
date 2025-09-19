@@ -4,8 +4,6 @@
 #include <cmath>
 
 PlannerNode::PlannerNode() : Node("planner"), planner_(robot::PlannerCore(this->get_logger())) {
-  processParameters();
-
   map_sub_ = this->create_subscription<nav_msgs::msg::OccupancyGrid>(
     "/map",
     10,
@@ -32,10 +30,6 @@ PlannerNode::PlannerNode() : Node("planner"), planner_(robot::PlannerCore(this->
   );
 
   // planner_.initPlanner(smoothing_factor_, iterations_);
-}
-
-void PlannerNode::processParameters() {
-  // TODO: declare/get params here later
 }
 
 void PlannerNode::mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr map_msg){
