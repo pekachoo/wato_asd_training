@@ -64,9 +64,6 @@ void MapMemoryNode::integrateCostmap()
   const int costmap_width = static_cast<int>(latest_costmap_.info.width);
   const int costmap_height = static_cast<int>(latest_costmap_.info.height);
   const double costmap_resolution = latest_costmap_.info.resolution;
-  
-  const int global_width = static_cast<int>(global_map_.info.width);
-  const int global_height = static_cast<int>(global_map_.info.height);
   const double global_resolution = global_map_.info.resolution;
   
   if (std::abs(costmap_resolution - global_resolution) > 1e-6) return;
