@@ -135,7 +135,7 @@ void CostmapNode::lidar_callback(const sensor_msgs::msg::LaserScan::SharedPtr ms
   }
 
   // Inflate obstacles
-  inflateObstacles(costmap_msg_, /*inflation_radius=*/0.6, /*max_cost=*/100);
+  inflateObstacles(costmap_msg_, /*inflation_radius=*/2, /*max_cost=*/100);
 
   // Publish
   costmap_pub_->publish(costmap_msg_);
